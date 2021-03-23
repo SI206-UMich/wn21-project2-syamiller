@@ -14,9 +14,21 @@ def get_titles_from_search_results(filename):
 
     [('Book title 1', 'Author 1'), ('Book title 2', 'Author 2')...]
     """
+    l = []
 
-    pass
+    with open(filename) as f:
+        soup = BeautifulSoup(f, 'html.parser')
 
+    table = soup.find('tbody')
+    trs = table.find_all('tr')
+    for tr in trs:
+        tag = tr.find('a', class_='bookTitle')
+        title = tag.text.strip()
+        tag = tr.find('a', class_='authorName')
+        name = tag.text.strip()
+        l.append((title, name))
+
+    return l
 
 def get_search_links():
     """
@@ -32,8 +44,18 @@ def get_search_links():
 
     """
 
-    pass
+    url = 'https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc'
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    l = []
+    table = soup.find('table', class_='tableList')
+    trs = table.find_all('tr')
+    for tr in trs[:10]:
+        tag = tr.find('a', class_='bookTitle')
+        link = tag.get('href')
+        l.append('https://www.goodreads.com' + link)
 
+    return l
 
 def get_book_summary(book_url):
     """
@@ -48,9 +70,19 @@ def get_book_summary(book_url):
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
-
-    pass
-
+    l = []
+    r = requests.get(book_url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    tag = soup.find('h1', id='bookTitle')
+    title = tag.text.strip()
+    tag = soup.find('a', class_='authorName')
+    author = tag.text.strip()
+    tag = soup.find('span', itemprop='numberOfPages')
+    pages = tag.text.strip()
+    pages = re.findall(r'\d+\b', pages)
+    pages = int(pages[0])
+    l.append((title, author, pages))
+    return l
 
 def summarize_best_books(filepath):
     """
@@ -63,8 +95,21 @@ def summarize_best_books(filepath):
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
     """
-    pass
-
+    with open(filepath) as f:
+        soup = BeautifulSoup(f, 'html.parser')
+    
+    l = []
+    table = soup.find('div', class_='clearFix')
+    categories = table.find_all('div', class_='catgeory')
+    for category in categories:
+        tag = category.find('h4', class_='category__copy')
+        name = tag.text.strip()
+        tag = category.find('img')
+        title = tag.get('alt')
+        tag = category.find('a')
+        link = 'https://www.goodreads.com/' + tag.get('href')
+        l.append((name, title, link))
+    return l
 
 def write_csv(data, filename):
     """
@@ -101,13 +146,14 @@ def extra_credit(filepath):
 class TestCases(unittest.TestCase):
 
     # call get_search_links() and save it to a static variable: search_urls
-
+    search_urls = get_search_links()
 
     def test_get_titles_from_search_results(self):
         # call get_titles_from_search_results() on search_results.htm and save to a local variable
+        search = get_titles_from_search_results('search_results.htm')
 
         # check that the number of titles extracted is correct (20 titles)
-
+        self.assertEqual(20, len(search))
         # check that the variable you saved after calling the function is a list
 
         # check that each item in the list is a tuple
@@ -120,7 +166,7 @@ class TestCases(unittest.TestCase):
         # check that TestCases.search_urls is a list
 
         # check that the length of TestCases.search_urls is correct (10 URLs)
-
+        pass
 
         # check that each URL in the TestCases.search_urls is a string
         # check that each URL contains the correct url for Goodreads.com followed by /book/show/
@@ -131,7 +177,7 @@ class TestCases(unittest.TestCase):
         # for each URL in TestCases.search_urls (should be a list of tuples)
 
         # check that the number of book summaries is correct (10)
-
+        pass
             # check that each item in the list is a tuple
 
             # check that each tuple has 3 elements
@@ -149,7 +195,7 @@ class TestCases(unittest.TestCase):
         # check that we have the right number of best books (20)
 
             # assert each item in the list of best books is a tuple
-
+        pass
             # check that each tuple has a length of 3
 
         # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
@@ -164,7 +210,7 @@ class TestCases(unittest.TestCase):
 
         # read in the csv that you wrote (create a variable csv_lines - a list containing all the lines in the csv you just wrote to above)
 
-
+        pass
         # check that there are 21 lines in the csv
 
         # check that the header row is correct
