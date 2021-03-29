@@ -15,8 +15,9 @@ def get_titles_from_search_results(filename):
     [('Book title 1', 'Author 1'), ('Book title 2', 'Author 2')...]
     """
     l = []
-
-    with open(filename) as f:
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, filename)
+    with open(full_path) as f:
         soup = BeautifulSoup(f, 'html.parser')
 
     table = soup.find('tbody')
@@ -93,7 +94,9 @@ def summarize_best_books(filepath):
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
     """
-    with open(filepath) as f:
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, filepath)
+    with open(full_path) as f:
         soup = BeautifulSoup(f, 'html.parser')
     
     l = []
@@ -143,7 +146,20 @@ def extra_credit(filepath):
     Please see the instructions document for more information on how to complete this function.
     You do not have to write test cases for this function.
     """
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, filepath)
+    with open(full_path) as f:
+        soup = BeautifulSoup(f, 'html.parser')
     
+    div = soup.find('div', id='description')
+    description = div.find_all('span')[1].text
+
+    regex = r'\b[A-Z]\w{2,}(?: [A-Z]\w+\b)+'
+    names = []
+    x = re.findall(regex, description)
+    for words in x:
+        names.append(words)
+    return names
 
 class TestCases(unittest.TestCase):
 
@@ -236,7 +252,7 @@ class TestCases(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print(extra_credit("extra_credit.htm"))
+    #print(extra_credit("extra_credit.htm"))
     unittest.main(verbosity=2)
     #print(summarize_best_books('best_books_2020.htm'))
 
